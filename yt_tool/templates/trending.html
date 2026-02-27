@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Trending – YT Scrape Tool{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="mb-0">Trending Videos</h2>
+  <form method="get" class="d-flex align-items-center gap-2">
+    <label class="text-muted small mb-0">Show top</label>
+    <select name="limit" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+      {% for n in [10, 20, 50] %}
+      <option value="{{ n }}" {% if n == limit %}selected{% endif %}>{{ n }}</option>
+      {% endfor %}
+    </select>
+  </form>
+</div>
+
+{% if not rows %}
+<div class="alert alert-info">
+  No trending data yet. Scrape the same queries at least <strong>twice</strong> to generate view count snapshots.
+</div>
+{% else %}
+<div class="table-responsive shadow-sm rounded">
+  <table class="table table-striped table-hover table-sm mb-0 bg-white">
+    <thead class="table-dark">
+      <tr>
+        <th>#</th>
+        <th>Title</th>
+        <th>Channel</th>
+        <th>Query</th>
+        <th>Prev Views</th>
+        <th>Latest Views</th>
+        <th>Growth</th>
+        <th>Growth %</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td class="text-muted">{{ loop.index }}</td>
+        <td><a href="{{ r.url }}" target="_blank" class="text-decoration-none">
+          {{ r.title[:55] }}{% if r.title|length > 55 %}…{% endif %}
+        </a></td>
+        <td>{{ r.channel }}</td>
+        <td><span class="badge bg-secondary">{{ r.query }}</span></td>
+        <td class="text-muted">{{ "{:,}".format(r.prev_views) if r.prev_views is not none else "N/A" }}</td>
+        <td>{{ "{:,}".format(r.latest_views) if r.latest_views is not none else "N/A" }}</td>
+        <td class="text-success fw-bold">+{{ "{:,}".format(r.growth) }}</td>
+        <td><span class="badge bg-success">{{ r.growth_pct }}%</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% endblock %}

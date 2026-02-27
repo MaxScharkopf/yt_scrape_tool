@@ -3,3 +3,5 @@ log_file                 = "logs/yt_tool.log"
 log_level                = "INFO"
 scheduler_interval_hours = 24
 export_dir               = "."
+web_host                 = "127.0.0.1"
+web_port                 = 5000

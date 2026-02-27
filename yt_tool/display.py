@@ -6,6 +6,7 @@ import sqlite3
 from tabulate import tabulate
 
 from .config import DB_FILE
+from .database import get_duplicates, get_trending
 
 logger = logging.getLogger(__name__)
 
@@ -85,3 +86,52 @@ def cmd_browse() -> None:
             print("  Invalid selection.")
 
     conn.close()
+
+
+def cmd_trending(limit: int = 20) -> None:
+    rows = get_trending(limit=limit)
+    if not rows:
+        print("\n  No trending data yet. Re-scrape tracked queries at least twice to build view snapshots.\n")
+        return
+    table = [
+        [
+            (r["title"][:45] + "...") if len(r["title"]) > 45 else r["title"],
+            r["channel"],
+            r["query"],
+            f"{r['prev_views']:,}" if r["prev_views"] is not None else "N/A",
+            f"{r['latest_views']:,}" if r["latest_views"] is not None else "N/A",
+            f"+{r['growth']:,}",
+            f"{r['growth_pct']}%",
+        ]
+        for r in rows
+    ]
+    print("\n" + tabulate(
+        table,
+        headers=["Title", "Channel", "Query", "Prev Views", "Latest Views", "Growth", "Growth %"],
+        tablefmt="rounded_outline",
+    ))
+    logger.info("Trending report: %d video(s).", len(rows))
+
+
+def cmd_duplicates() -> None:
+    rows = get_duplicates()
+    if not rows:
+        print("\n  No duplicate videos found — each video appears under only one query.\n")
+        return
+    table = [
+        [
+            (r["title"][:45] + "...") if len(r["title"]) > 45 else r["title"],
+            r["channel"],
+            r["query_count"],
+            r["queries"],
+            r["views"] or "N/A",
+        ]
+        for r in rows
+    ]
+    print("\n" + tabulate(
+        table,
+        headers=["Title", "Channel", "# Queries", "Queries", "Views"],
+        tablefmt="rounded_outline",
+        maxcolwidths=[45, 20, 9, 40, 15],
+    ))
+    logger.info("Duplicates report: %d video(s).", len(rows))

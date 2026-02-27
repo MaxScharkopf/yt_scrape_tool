@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – YT Scrape Tool{% endblock %}
+{% block content %}
+
+<h2 class="mb-4">Dashboard</h2>
+
+<div class="row g-3 mb-5">
+  <div class="col-6 col-md-3">
+    <div class="card text-center shadow-sm border-0">
+      <div class="card-body">
+        <div class="display-6 fw-bold text-primary">{{ stats.total_videos }}</div>
+        <div class="text-muted small mt-1">Videos</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-center shadow-sm border-0">
+      <div class="card-body">
+        <div class="display-6 fw-bold text-success">{{ stats.total_queries }}</div>
+        <div class="text-muted small mt-1">Unique Queries</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-center shadow-sm border-0">
+      <div class="card-body">
+        <div class="display-6 fw-bold text-warning">{{ stats.tracked }}</div>
+        <div class="text-muted small mt-1">Tracked Queries</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-center shadow-sm border-0">
+      <div class="card-body">
+        <div class="display-6 fw-bold text-info">{{ stats.snapshots }}</div>
+        <div class="text-muted small mt-1">View Snapshots</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">Recently Scraped</h5>
+  <a href="{{ url_for('browse') }}" class="btn btn-sm btn-outline-primary">View All →</a>
+</div>
+
+<div class="table-responsive shadow-sm rounded">
+  <table class="table table-striped table-hover table-sm mb-0 bg-white">
+    <thead class="table-dark">
+      <tr>
+        <th>Title</th>
+        <th>Channel</th>
+        <th>Views</th>
+        <th>Query</th>
+        <th>Scraped At</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for v in recent %}
+      <tr>
+        <td><a href="{{ v.url }}" target="_blank" class="text-decoration-none">
+          {{ v.title[:65] }}{% if v.title|length > 65 %}…{% endif %}
+        </a></td>
+        <td>{{ v.channel }}</td>
+        <td>{{ v.views or "N/A" }}</td>
+        <td><span class="badge bg-secondary">{{ v.query }}</span></td>
+        <td><small class="text-muted">{{ v.scraped_at }}</small></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="text-center text-muted py-3">No videos yet. Run a search first.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

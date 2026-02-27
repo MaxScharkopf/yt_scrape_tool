@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Browse – YT Scrape Tool{% endblock %}
+{% block content %}
+
+<h2 class="mb-4">Browse Videos</h2>
+
+<form method="get" class="row g-2 mb-4 align-items-end">
+  <div class="col-md-5">
+    <label class="form-label small text-muted">Search titles</label>
+    <input name="q" type="text" class="form-control" placeholder="e.g. Nvidia" value="{{ keyword }}">
+  </div>
+  <div class="col-md-4">
+    <label class="form-label small text-muted">Filter by query</label>
+    <select name="query" class="form-select">
+      <option value="">All queries</option>
+      {% for q in all_queries %}
+      <option value="{{ q }}" {% if q == query_filter %}selected{% endif %}>{{ q }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2">
+    <button class="btn btn-primary w-100" type="submit">Filter</button>
+  </div>
+  <div class="col-md-1">
+    <a href="{{ url_for('browse') }}" class="btn btn-outline-secondary w-100">✕</a>
+  </div>
+</form>
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <span class="text-muted small">{{ videos|length }} result(s)</span>
+  {% if query_filter %}
+  <a href="{{ url_for('export', query=query_filter) }}" class="btn btn-sm btn-outline-success">⬇ Export this query</a>
+  {% else %}
+  <a href="{{ url_for('export') }}" class="btn btn-sm btn-outline-success">⬇ Export all</a>
+  {% endif %}
+</div>
+
+<div class="table-responsive shadow-sm rounded">
+  <table class="table table-striped table-hover table-sm mb-0 bg-white">
+    <thead class="table-dark">
+      <tr>
+        <th>#</th>
+        <th>Title</th>
+        <th>Channel</th>
+        <th>Duration</th>
+        <th>Views</th>
+        <th>Query</th>
+        <th>Scraped At</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for v in videos %}
+      <tr>
+        <td class="text-muted">{{ loop.index }}</td>
+        <td><a href="{{ v.url }}" target="_blank" class="text-decoration-none">
+          {{ v.title[:60] }}{% if v.title|length > 60 %}…{% endif %}
+        </a></td>
+        <td>{{ v.channel }}</td>
+        <td>{{ v.duration }}</td>
+        <td>{{ v.views or "N/A" }}</td>
+        <td><span class="badge bg-secondary">{{ v.query }}</span></td>
+        <td><small class="text-muted">{{ v.scraped_at }}</small></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="text-center text-muted py-3">No results found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
