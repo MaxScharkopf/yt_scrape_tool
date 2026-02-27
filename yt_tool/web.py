@@ -50,10 +50,20 @@ def index():
     return render_template("index.html", stats=stats, recent=recent)
 
 
+SORTABLE_COLS = {"title", "channel", "views_int", "scraped_at"}
+
 @app.route("/browse")
 def browse():
     keyword      = request.args.get("q", "").strip()
     query_filter = request.args.get("query", "").strip()
+    sort         = request.args.get("sort", "scraped_at")
+    order        = request.args.get("order", "desc")
+
+    # Whitelist sort column and order to prevent SQL injection
+    if sort not in SORTABLE_COLS:
+        sort = "scraped_at"
+    if order not in ("asc", "desc"):
+        order = "desc"
 
     conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
@@ -62,7 +72,7 @@ def browse():
     c.execute("SELECT DISTINCT query FROM videos ORDER BY query")
     all_queries = [row[0] for row in c.fetchall()]
 
-    sql    = "SELECT title, channel, duration, views, views_int, url, query, scraped_at FROM videos WHERE 1=1"
+    sql    = "SELECT title, channel, duration, views_int, url, query, scraped_at FROM videos WHERE 1=1"
     params: list = []
     if keyword:
         sql += " AND title LIKE ?"
@@ -70,7 +80,7 @@ def browse():
     if query_filter:
         sql += " AND query = ?"
         params.append(query_filter)
-    sql += " ORDER BY scraped_at DESC LIMIT 500"
+    sql += f" ORDER BY {sort} {order} LIMIT 500"
 
     c.execute(sql, params)
     videos = [dict(row) for row in c.fetchall()]
@@ -82,6 +92,8 @@ def browse():
         keyword=keyword,
         query_filter=query_filter,
         all_queries=all_queries,
+        sort=sort,
+        order=order,
     )
 
 
@@ -107,15 +119,15 @@ def export():
     c = conn.cursor()
     if query_filter:
         c.execute(
-            "SELECT title, channel, duration, views, views_int, url, query, scraped_at "
-            "FROM videos WHERE query = ? ORDER BY scraped_at DESC",
+            "SELECT title, channel, duration, views_int, url, query, scraped_at "
+            "FROM videos WHERE query = ? ORDER BY views_int DESC",
             (query_filter,),
         )
         filename = f"youtube_{query_filter.replace(' ', '_')}.csv"
     else:
         c.execute(
-            "SELECT title, channel, duration, views, views_int, url, query, scraped_at "
-            "FROM videos ORDER BY scraped_at DESC"
+            "SELECT title, channel, duration, views_int, url, query, scraped_at "
+            "FROM videos ORDER BY views_int DESC"
         )
         filename = "youtube_all.csv"
 
@@ -124,7 +136,7 @@ def export():
 
     buf = io.StringIO()
     writer = csv.writer(buf)
-    writer.writerow(["Title", "Channel", "Duration", "Views", "Views (int)", "URL", "Query", "Scraped At"])
+    writer.writerow(["Title", "Channel", "Duration", "Views", "URL", "Query", "Scraped At"])
     writer.writerows(rows)
     buf.seek(0)
 
