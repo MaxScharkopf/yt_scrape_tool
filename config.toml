@@ -1,0 +1,5 @@
+db_file                  = "youtube_data.db"
+log_file                 = "logs/yt_tool.log"
+log_level                = "INFO"
+scheduler_interval_hours = 24
+export_dir               = "."

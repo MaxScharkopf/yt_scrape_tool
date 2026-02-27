@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Database
+youtube_data.db
+
+# Exports
+*.csv
+*.ods
+
+# Logs
+logs/
+
+# LibreOffice lock files
+.~lock.*
